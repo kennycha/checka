@@ -1,0 +1,64 @@
+.agent-status-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  margin: 2px 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.2s ease;
+}
+
+.agent-status-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.agent-status-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-icon {
+  font-size: 12px;
+  width: 16px;
+  text-align: center;
+}
+
+.agent-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.agent-status-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-text {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.unavailable-indicator {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+/* Loading animation for processing status */
+.agent-status-item:has(.status-text[style*="rgb(16, 185, 129)"]) .status-icon {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

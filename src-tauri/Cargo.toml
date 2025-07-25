@@ -1,0 +1,31 @@
+[package]
+name = "checka"
+version = "0.0.0"
+description = "A Tauri App"
+authors = ["Kennycha <dudqn136@naver.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "2.2.0", features = [] }
+
+[dependencies]
+tauri = { version = "2.5.1", features = [
+  "macos-private-api",
+  "tray-icon",
+  "image-png",
+] }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+sysinfo = "0.32.0"
+chrono = { version = "0.4", features = ["serde"] }
+image = { version = "0.24", features = ["png"] }
+
+tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
+monitor = { git = "https://github.com/ahkohd/tauri-toolkit", branch = "v2" }
+
+[features]
+# this feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]
