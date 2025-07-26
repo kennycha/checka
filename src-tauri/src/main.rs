@@ -9,6 +9,9 @@ mod agent_manager;
 
 use tauri::Manager;
 
+#[cfg(target_os = "macos")]
+use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -24,6 +27,12 @@ fn main() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             let app_handle = app.app_handle();
+
+            // Apply vibrancy to the main window
+            #[cfg(target_os = "macos")]
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = apply_vibrancy(&window, NSVisualEffectMaterial::Menu, None, Some(12.0));
+            }
 
             tray::create(app_handle)?;
 

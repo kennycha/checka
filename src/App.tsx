@@ -24,9 +24,21 @@ function App() {
     invoke("init");
     fetchAgentSummary();
 
-    // Poll for updates every 3 seconds
-    const interval = setInterval(fetchAgentSummary, 3000);
-    return () => clearInterval(interval);
+    // Use requestAnimationFrame for smoother updates
+    let lastTime = 0;
+    let animationId: number;
+
+    const animate = (currentTime: number) => {
+      if (currentTime - lastTime >= 1000) {
+        // 1 second
+        fetchAgentSummary();
+        lastTime = currentTime;
+      }
+      animationId = requestAnimationFrame(animate);
+    };
+
+    animationId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationId);
   }, []);
 
   if (loading) {
@@ -51,7 +63,7 @@ function App() {
   return (
     <div className="container">
       <div className="header">
-        <h2>AI Agents</h2>
+        <h2>Checka</h2>
         <div className="summary">
           <span className="active-count">
             {agentSummary.active_count}/{agentSummary.total_agents} active
@@ -69,6 +81,9 @@ function App() {
         <span className="last-updated">
           Last updated: {agentSummary.last_updated}
         </span>
+        <button className="quit-button" onClick={() => invoke("quit_app")}>
+          Quit
+        </button>
       </div>
     </div>
   );

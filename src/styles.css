@@ -5,7 +5,7 @@
   font-weight: 400;
 
   color: #fff;
-  background-color: #111;
+  background-color: transparent;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -26,16 +26,7 @@ body {
 body {
   height: 100vh;
   width: 100vw;
-
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
+  background: transparent;
 }
 
-.container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
+/* Remove conflicting container styles - App.css will handle this */

@@ -324,7 +324,7 @@ fn generate_robot_head_icon(eye_color: [u8; 3], count: usize) -> tauri::Result<I
     {
         let mut cursor = std::io::Cursor::new(&mut png_bytes);
         if image::codecs::png::PngEncoder::new(&mut cursor)
-            .write_image(&img, size, size, image::ColorType::Rgba8)
+            .write_image(&img, size, size, image::ExtendedColorType::Rgba8)
             .is_ok()
         {
             Image::from_bytes(&png_bytes)
