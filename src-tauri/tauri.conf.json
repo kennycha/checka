@@ -7,18 +7,22 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["dmg"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ]
+      "icons/icon.icns"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "10.15",
+      "signingIdentity": null,
+      "entitlements": null
+    }
   },
-  "productName": "checka",
-  "version": "0.2.0",
-  "identifier": "com.example.dev",
+  "productName": "Checka",
+  "version": "0.1.0",
+  "identifier": "com.checka.app",
   "plugins": {},
   "app": {
     "windows": [
@@ -26,8 +30,8 @@
         "fullscreen": false,
         "resizable": false,
         "title": "menubar",
-        "width": 350,
-        "height": 400,
+        "width": 240,
+        "height": 300,
         "decorations": false,
         "transparent": true,
         "visible": false
