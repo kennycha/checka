@@ -44,3 +44,8 @@ pub fn has_active_agents() -> bool {
     let manager = AgentManager::new();
     manager.has_active_agents()
 }
+
+#[tauri::command]
+pub fn quit_app(app_handle: tauri::AppHandle) {
+    app_handle.exit(0);
+}

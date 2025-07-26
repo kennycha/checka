@@ -16,7 +16,8 @@ fn main() {
             command::show_menubar_panel,
             command::get_agent_summary,
             command::get_processing_count,
-            command::has_active_agents
+            command::has_active_agents,
+            command::quit_app
         ])
         .plugin(tauri_nspanel::init())
         .setup(|app| {
