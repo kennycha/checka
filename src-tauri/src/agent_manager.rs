@@ -57,6 +57,10 @@ impl AgentManager {
         let processing_count = self.get_processing_count();
         let waiting_count = self.get_waiting_count();
         let total_agents = self.monitors.len();
+        
+        let current_directory = std::env::current_dir()
+            .map(|p| p.to_string_lossy().to_string())
+            .unwrap_or_else(|_| "Unknown".to_string());
 
         AgentSummary {
             total_agents,
@@ -65,6 +69,7 @@ impl AgentManager {
             active_count: processing_count + waiting_count,
             agents: agent_info,
             last_updated: chrono::Local::now().format("%H:%M:%S").to_string(),
+            current_directory,
         }
     }
 
@@ -78,6 +83,7 @@ pub struct AgentSummary {
     pub active_count: usize,
     pub agents: Vec<AgentInfo>,
     pub last_updated: String,
+    pub current_directory: String,
 }
 
 impl Default for AgentManager {

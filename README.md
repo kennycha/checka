@@ -2,12 +2,13 @@
 
 > Do you ever miss when your AI agent finishes a task while you're working on something else?
 
-Checka is a macOS menubar app that monitors the status of AI coding agents in real-time. Keep track of Claude Code, Cursor Agent, Gemini CLI, and GitHub Copilot CLI at a glance!
+Checka is a macOS project-specific AI agent monitoring tool. Monitor Claude Code and other AI agents running in your current project directory in real-time!
 
 ## Key Features
 
-- **Real-time Monitoring**: Check if AI agents are processing, waiting, or idle in real-time
-- **At-a-glance Status**: Instantly see agent activity status through the menubar icon
+- **Real-time Status**: Check if AI agents are processing, waiting, or idle in real-time
+- **Project-specific**: Monitor AI agents only in your current working directory
+- **Clean Interface**: Simple menubar interface showing current project and agent status
 
 ## Supported AI Agents
 
@@ -23,41 +24,83 @@ Checka is a macOS menubar app that monitors the status of AI coding agents in re
 
 ## Installation
 
-Run Checka locally:
+### Method 1: Local Build (Recommended)
+
+Build and install Checka as a system CLI tool:
 
 ```bash
 # Clone the repository
 git clone https://github.com/kennycha/checka.git
 cd checka
 
-# Install dependencies
+# Install dependencies and build
 pnpm install
+pnpm tauri build
 
-# Run in development mode
+# Install as system command (requires sudo)
+sudo ln -s $(pwd)/src-tauri/target/release/checka /usr/local/bin/checka
+```
+
+Now you can use `checka` from any project directory:
+
+```bash
+cd /your-project
+checka  # Monitor AI agents in current directory
+```
+
+> **Note**: Checka requires local building rather than distributing pre-built binaries due to macOS security restrictions.
+
+### Method 2: Development Mode
+
+For development or testing:
+
+```bash
+# Clone and run in development mode
+git clone https://github.com/kennycha/checka.git
+cd checka
+pnpm install
 pnpm tauri dev
 ```
 
-The app will launch automatically and work with full AI agent detection capabilities.
+### Interface
 
-> **Note**: Due to macOS security restrictions, only development mode provides full functionality for AI agent monitoring.
+1. **Current Project**: Shows the directory being monitored (📁 project-name)
+2. **Agent Status**:
+   - 🟢 **Processing**: AI agent is actively working (>1% CPU)
+   - 🟡 **Waiting**: AI agent is running but waiting for input
+   - ⚪ **Off**: No AI agent detected in current directory
+3. **Active Count**: Shows "X/Y active" (processing + waiting / total agents)
+4. **Quit**: Click "Quit" to exit the app
 
-## Usage
+### Workflow Example
 
-1. **Menubar Robot Icon**: The robot's eye color indicates status
-   - Gray eyes: All agents are off
-   - Green eyes: Agents are processing
-   - Yellow eyes: Agents are waiting only
-2. **Open Panel**: Click the menubar robot icon to open the detailed status panel
-3. **Check Status**: View each agent's status (processing, waiting, or off)
-4. **Quit App**: Use the "Quit" button at the bottom of the panel to exit the app
+```bash
+# Start working on a project
+cd /Users/john/my-web-app
 
-## Development Story
+# Launch Checka to monitor this project only
+checka
 
-As programming increasingly involves delegating code writing to AI agents, a pattern emerged of requesting tasks and then handling other work like planning or team collaboration.
+# Start using Claude Code in this directory
+claude "help me refactor this component"
 
-However, I often missed when AI agents completed their tasks, creating "dead time" where I wasn't aware work was finished.
+# Checka will show Claude Code status in the menubar
+# Switch to other work while Claude processes
+# Get notified when Claude finishes via status change
+```
 
-I built this app to eliminate missed opportunities and maximize efficiency in asynchronous collaboration between myself and AI agents.
+## Why Checka?
+
+Modern development increasingly involves AI agents handling code tasks while developers multitask on other work like planning, documentation, or team collaboration.
+
+The problem: **You miss when AI agents finish their work**, creating inefficient "dead time" where completed tasks go unnoticed.
+
+Checka solves this by providing **project-specific, real-time monitoring** of AI agent activity, so you can:
+
+- Work on other tasks while AI agents process
+- Get immediate visual feedback when agents finish
+- Stay focused on your current project only
+- Maximize efficiency in human-AI collaboration
 
 ## Development
 

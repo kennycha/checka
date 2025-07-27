@@ -14,6 +14,7 @@ export interface AgentSummary {
   active_count: number;
   agents: AgentInfo[];
   last_updated: string;
+  current_directory: string;
 }
 
 export function getStatusString(status: AgentStatus): string {

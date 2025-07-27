@@ -63,7 +63,12 @@ function App() {
   return (
     <div className="container">
       <div className="header">
-        <h2>Checka</h2>
+        <div className="title-section">
+          <h2>Checka</h2>
+          <div className="project-path">
+            📁 {agentSummary.current_directory.split('/').pop() || 'Unknown'}
+          </div>
+        </div>
         <div className="summary">
           <span className="active-count">
             {agentSummary.active_count}/{agentSummary.total_agents} active
