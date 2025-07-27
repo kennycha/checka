@@ -31,7 +31,7 @@ fn main() {
             // Apply vibrancy to the main window
             #[cfg(target_os = "macos")]
             if let Some(window) = app.get_webview_window("main") {
-                let _ = apply_vibrancy(&window, NSVisualEffectMaterial::Menu, None, Some(12.0));
+                let _ = apply_vibrancy(&window, NSVisualEffectMaterial::Popover, None, Some(8.0));
             }
 
             tray::create(app_handle)?;

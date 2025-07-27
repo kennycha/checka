@@ -5,7 +5,6 @@
   flex-direction: column;
   height: 100vh;
   box-sizing: border-box;
-  background: rgba(0, 0, 0, 0.01);
   border-radius: 12px;
 }
 
