@@ -25,7 +25,7 @@ Checka is a macOS menubar app that monitors the status of AI coding agents in re
 
 1. Download the latest version from the [Releases page](https://github.com/kennycha/checka/releases)
 2. Choose the DMG file for your Mac:
-   - `Checka_x.x.x_aarch64.dmg` (Apple Silicon M1/M2/M3)
+   - `Checka_x.x.x_aarch64.dmg` (Apple Silicon)
    - `Checka_x.x.x_x64.dmg` (Intel Mac)
 3. Open the DMG file and drag Checka to your Applications folder
 4. Launch the application and you'll see a robot icon in your menubar
