@@ -23,9 +23,7 @@ Checka is a macOS menubar app that monitors the status of AI coding agents in re
 
 ## Installation
 
-### Option 1: Local Development (Recommended)
-
-For the best experience and immediate functionality, run Checka locally:
+Run Checka locally:
 
 ```bash
 # Clone the repository
@@ -41,27 +39,7 @@ pnpm tauri dev
 
 The app will launch automatically and work with full AI agent detection capabilities.
 
-### Option 2: Local Build
-
-If you prefer a standalone app:
-
-```bash
-# After cloning and installing dependencies (see above)
-pnpm tauri build
-
-# The built app will be available at:
-# src-tauri/target/release/bundle/macos/Checka.app
-```
-
-> **Note 1**: Due to macOS security restrictions, pre-built releases may have limited functionality for process monitoring. Local development mode provides the best experience.
-
-> **Note 2**: For easier access, copy the built app to Applications folder:
->
-> ```bash
-> cp -r src-tauri/target/release/bundle/macos/Checka.app /Applications/
-> ```
->
-> Then you can launch it from Spotlight or Applications folder like any other app.
+> **Note**: Due to macOS security restrictions, only development mode provides full functionality for AI agent monitoring.
 
 ## Usage
 
