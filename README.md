@@ -23,12 +23,45 @@ Checka is a macOS menubar app that monitors the status of AI coding agents in re
 
 ## Installation
 
-1. Download the latest version from the [Releases page](https://github.com/kennycha/checka/releases)
-2. Choose the DMG file for your Mac:
-   - `Checka_x.x.x_aarch64.dmg` (Apple Silicon)
-   - `Checka_x.x.x_x64.dmg` (Intel Mac)
-3. Open the DMG file and drag Checka to your Applications folder
-4. Launch the application and you'll see a robot icon in your menubar
+### Option 1: Local Development (Recommended)
+
+For the best experience and immediate functionality, run Checka locally:
+
+```bash
+# Clone the repository
+git clone https://github.com/kennycha/checka.git
+cd checka
+
+# Install dependencies
+pnpm install
+
+# Run in development mode
+pnpm tauri dev
+```
+
+The app will launch automatically and work with full AI agent detection capabilities.
+
+### Option 2: Local Build
+
+If you prefer a standalone app:
+
+```bash
+# After cloning and installing dependencies (see above)
+pnpm tauri build
+
+# The built app will be available at:
+# src-tauri/target/release/bundle/macos/Checka.app
+```
+
+> **Note 1**: Due to macOS security restrictions, pre-built releases may have limited functionality for process monitoring. Local development mode provides the best experience.
+
+> **Note 2**: For easier access, copy the built app to Applications folder:
+>
+> ```bash
+> cp -r src-tauri/target/release/bundle/macos/Checka.app /Applications/
+> ```
+>
+> Then you can launch it from Spotlight or Applications folder like any other app.
 
 ## Usage
 
@@ -47,6 +80,28 @@ As programming increasingly involves delegating code writing to AI agents, a pat
 However, I often missed when AI agents completed their tasks, creating "dead time" where I wasn't aware work was finished.
 
 I built this app to eliminate missed opportunities and maximize efficiency in asynchronous collaboration between myself and AI agents.
+
+## Development
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (LTS version)
+- [pnpm](https://pnpm.io/) package manager
+- [Rust](https://rustup.rs/) toolchain
+- Xcode Command Line Tools (macOS)
+
+### Development Commands
+
+```bash
+# Start development server
+pnpm tauri dev
+
+# Build for production
+pnpm tauri build
+
+# Frontend development only
+pnpm dev
+```
 
 ## Tech Stack
 

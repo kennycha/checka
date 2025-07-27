@@ -17,7 +17,7 @@
     "macOS": {
       "minimumSystemVersion": "10.15",
       "signingIdentity": null,
-      "entitlements": "entitlements.plist"
+      "entitlements": null
     }
   },
   "productName": "Checka",
