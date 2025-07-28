@@ -4,6 +4,8 @@
 
 Checka is a macOS project-specific AI agent monitoring tool. Monitor Claude Code and other AI agents running in your current project directory in real-time!
 
+![Demo](assets/demo.webp)
+
 ## Key Features
 
 - **Real-time Status**: Check if AI agents are processing, waiting, or idle in real-time
