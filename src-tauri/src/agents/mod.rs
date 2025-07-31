@@ -11,12 +11,6 @@ pub enum AgentStatus {
     Error(String),
 }
 
-impl AgentStatus {
-    pub fn is_active(&self) -> bool {
-        matches!(self, AgentStatus::Processing | AgentStatus::Waiting)
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentInfo {
     pub name: String,
