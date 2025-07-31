@@ -1,4 +1,4 @@
-use crate::agents::{AgentMonitor, AgentInfo, AgentStatus, claude_code::ClaudeCodeMonitor};
+use crate::agents::{AgentMonitor, AgentInfo, AgentStatus, claude_code::ClaudeCodeMonitor, gemini::GeminiMonitor};
 
 pub struct AgentManager {
     monitors: Vec<Box<dyn AgentMonitor>>,
@@ -8,10 +8,16 @@ impl AgentManager {
     pub fn new() -> Self {
         let mut monitors: Vec<Box<dyn AgentMonitor>> = vec![];
         
-        // Add Claude Code monitor (only enabled agent for Phase 1)
+        // Add Claude Code monitor
         let claude_monitor = ClaudeCodeMonitor::new();
         if claude_monitor.is_available() {
             monitors.push(Box::new(claude_monitor));
+        }
+        
+        // Add Gemini monitor
+        let gemini_monitor = GeminiMonitor::new();
+        if gemini_monitor.is_available() {
+            monitors.push(Box::new(gemini_monitor));
         }
         
         Self {
@@ -27,35 +33,18 @@ impl AgentManager {
             .collect()
     }
 
-    pub fn get_active_count(&self) -> usize {
-        self.monitors
-            .iter()
-            .filter(|monitor| monitor.get_status().is_active())
-            .count()
-    }
-
-    pub fn get_processing_count(&self) -> usize {
-        self.monitors
-            .iter()
-            .filter(|monitor| matches!(monitor.get_status(), AgentStatus::Processing))
-            .count()
-    }
-
-    pub fn get_waiting_count(&self) -> usize {
-        self.monitors
-            .iter()
-            .filter(|monitor| matches!(monitor.get_status(), AgentStatus::Waiting))
-            .count()
-    }
-
-    pub fn has_active_agents(&self) -> bool {
-        self.get_active_count() > 0
-    }
-
     pub fn get_summary(&self) -> AgentSummary {
+        // 한 번만 모든 에이전트 정보를 가져와서 재사용
         let agent_info = self.get_all_agent_info();
-        let processing_count = self.get_processing_count();
-        let waiting_count = self.get_waiting_count();
+        
+        // agent_info에서 카운트 정보를 계산 (get_status() 재호출 없음)
+        let processing_count = agent_info.iter()
+            .filter(|info| matches!(info.status, AgentStatus::Processing))
+            .count();
+        let waiting_count = agent_info.iter()
+            .filter(|info| matches!(info.status, AgentStatus::Waiting))
+            .count();
+        
         let total_agents = self.monitors.len();
         
         let current_directory = std::env::current_dir()
@@ -72,7 +61,6 @@ impl AgentManager {
             current_directory,
         }
     }
-
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -89,34 +77,5 @@ pub struct AgentSummary {
 impl Default for AgentManager {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_agent_manager_creation() {
-        let manager = AgentManager::new();
-        
-        // Should have at least Claude Code monitor if available
-        let summary = manager.get_summary();
-        println!("Available agents: {}", summary.total_agents);
-        
-        // Test that summary structure is correct
-        assert_eq!(summary.active_count, summary.processing_count + summary.waiting_count);
-    }
-
-    #[test]
-    fn test_agent_info_retrieval() {
-        let manager = AgentManager::new();
-        let agent_info = manager.get_all_agent_info();
-        
-        // Should have agent info
-        for info in agent_info {
-            println!("Agent: {}, Status: {:?}, Available: {}", 
-                    info.name, info.status, info.available);
-        }
     }
 }

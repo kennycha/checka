@@ -5,11 +5,9 @@ use tauri::{
 };
 use tauri_nspanel::ManagerExt;
 use std::sync::{Arc, Mutex};
-use std::sync::atomic::{AtomicUsize, Ordering};
 use image::{ImageBuffer, Rgba, RgbaImage, ImageEncoder};
 
-use crate::fns::position_menubar_panel;
-use crate::agent_manager::AgentManager;
+use crate::{agent_manager::AgentSummary, fns::position_menubar_panel};
 
 pub fn create(app_handle: &AppHandle) -> tauri::Result<TrayIcon> {
     let initial_icon = get_tray_icon_for_count(0, 0)?;
@@ -39,9 +37,6 @@ pub fn create(app_handle: &AppHandle) -> tauri::Result<TrayIcon> {
 
     // Store tray reference for updates
     app_handle.manage(Arc::new(Mutex::new(tray.clone())));
-    
-    // Store animation frame counter
-    app_handle.manage(Arc::new(AtomicUsize::new(0)));
 
     // Start background task to update tray icon
     start_tray_updater(app_handle.clone());
@@ -52,18 +47,18 @@ pub fn create(app_handle: &AppHandle) -> tauri::Result<TrayIcon> {
 fn get_tray_icon_for_count(processing_count: usize, waiting_count: usize) -> tauri::Result<Image<'static>> {
     if processing_count == 0 && waiting_count == 0 {
         // All off - use gray eyes
-        generate_robot_head_icon([107, 114, 128], processing_count + waiting_count) // #6b7280 gray
+        generate_robot_head_icon([107, 114, 128]) // #6b7280 gray
     } else if processing_count > 0 {
         // Has processing agents - use softer green eyes
-        generate_robot_head_icon([52, 168, 83], processing_count + waiting_count) // #34a853 softer green
+        generate_robot_head_icon([52, 168, 83]) // #34a853 softer green
     } else {
         // Only waiting agents - use softer yellow eyes
-        generate_robot_head_icon([251, 188, 4], processing_count + waiting_count) // #fbbc04 softer yellow
+        generate_robot_head_icon([251, 188, 4]) // #fbbc04 softer yellow
     }
 }
 
 
-fn generate_robot_head_icon(eye_color: [u8; 3], count: usize) -> tauri::Result<Image<'static>> {
+fn generate_robot_head_icon(eye_color: [u8; 3]) -> tauri::Result<Image<'static>> {
     // Generate robot head icon with colored eyes
     let size = 32u32;
     let mut img: RgbaImage = ImageBuffer::new(size, size);
@@ -303,22 +298,6 @@ fn generate_robot_head_icon(eye_color: [u8; 3], count: usize) -> tauri::Result<I
         }
     }
     
-    // Add small indicators for count (tiny dots on robot head)
-    if count > 0 {
-        let display_count = if count > 9 { 9 } else { count };
-        
-        // Place small dots on the top of the robot head
-        for i in 0..display_count {
-            let dot_x = head_left + 3 + (i * 2) as i32;
-            let dot_y = head_top + 2;
-            
-            if dot_x < head_right - 2 && dot_y < head_bottom {
-                // Small white indicator dot
-                img.put_pixel(dot_x as u32, dot_y as u32, Rgba([255, 255, 255, 255]));
-            }
-        }
-    }
-    
     // Convert to PNG bytes
     let mut png_bytes = Vec::new();
     {
@@ -335,72 +314,37 @@ fn generate_robot_head_icon(eye_color: [u8; 3], count: usize) -> tauri::Result<I
     }
 }
 
-fn get_animated_robot_head_icon(frame: usize, processing_count: usize, waiting_count: usize) -> tauri::Result<Image<'static>> {
-    // Generate robot head (same as static version - no animation on eyes)
-    // Just use the regular robot head function and ignore frame parameter
-    let _ = frame; // Suppress unused parameter warning
-    
-    // Determine eye color based on priority: processing > waiting
-    let eye_color = if processing_count > 0 {
-        [52, 168, 83] // Softer green for processing
-    } else {
-        [251, 188, 4] // Softer yellow for waiting
-    };
-    
-    // Use the same robot head generation as static version
-    generate_robot_head_icon(eye_color, processing_count + waiting_count)
-}
-
 fn start_tray_updater(app_handle: AppHandle) {
-    // Use std::thread instead of tokio::spawn to avoid runtime issues
     std::thread::spawn(move || {
         loop {
-            if let Some(tray_ref) = app_handle.try_state::<Arc<Mutex<TrayIcon>>>() {
-                if let Some(frame_counter) = app_handle.try_state::<Arc<AtomicUsize>>() {
-                    let manager = AgentManager::new();
-                    let processing_count = manager.get_processing_count();
-                    let waiting_count = manager.get_waiting_count();
-                    
-                    let new_icon = if processing_count > 0 || waiting_count > 0 {
-                        // Active agents - use animated robot head
-                        let current_frame = frame_counter.fetch_add(1, Ordering::Relaxed);
-                        get_animated_robot_head_icon(current_frame, processing_count, waiting_count)
-                    } else {
-                        // All off - use static robot head
-                        frame_counter.store(0, Ordering::Relaxed); // Reset animation
-                        get_tray_icon_for_count(processing_count, waiting_count)
-                    };
-                    
-                    if let Ok(icon) = new_icon {
-                        if let Ok(tray) = tray_ref.lock() {
-                            let _ = tray.set_icon(Some(icon));
-                            
-                            // Update tooltip to show status
-                            let tooltip = match (processing_count, waiting_count) {
-                                (0, 0) => "AI Agents - All off".to_string(),
-                                (p, 0) => format!("AI Agents - {} processing", p),
-                                (0, w) => format!("AI Agents - {} waiting", w),
-                                (p, w) => format!("AI Agents - {} processing, {} waiting", p, w),
-                            };
-                            let _ = tray.set_tooltip(Some(&tooltip));
+            if let Some(summary_state) = app_handle.try_state::<Arc<Mutex<Option<AgentSummary>>>>() {
+                if let Ok(summary_lock) = summary_state.lock() {
+                    if let Some(summary) = summary_lock.as_ref() {
+                        let processing_count = summary.processing_count;
+                        let waiting_count = summary.waiting_count;
+
+                        if let Some(tray_ref) = app_handle.try_state::<Arc<Mutex<TrayIcon>>>() {
+                            let new_icon = get_tray_icon_for_count(processing_count, waiting_count);
+
+                            if let Ok(icon) = new_icon {
+                                if let Ok(tray) = tray_ref.lock() {
+                                    let _ = tray.set_icon(Some(icon));
+                                    let tooltip = match (processing_count, waiting_count) {
+                                        (0, 0) => "AI Agents - All off".to_string(),
+                                        (p, 0) => format!("AI Agents - {} processing", p),
+                                        (0, w) => format!("AI Agents - {} waiting", w),
+                                        (p, w) => format!("AI Agents - {} processing, {} waiting", p, w),
+                                    };
+                                    let _ = tray.set_tooltip(Some(&tooltip));
+                                }
+                            }
                         }
                     }
                 }
             }
-            
-            // Different sleep times based on whether we're animating
-            let manager = AgentManager::new();
-            let has_active_agents = manager.get_processing_count() > 0 || manager.get_waiting_count() > 0;
-            let sleep_duration = if has_active_agents {
-                // Faster updates for animation when active
-                std::time::Duration::from_millis(500)
-            } else {
-                // Slower updates when all off
-                std::time::Duration::from_secs(3)
-            };
-            
+
+            let sleep_duration = std::time::Duration::from_secs(2);
             std::thread::sleep(sleep_duration);
         }
     });
 }
-

@@ -15,8 +15,8 @@ Checka is a macOS project-specific AI agent monitoring tool. Monitor Claude Code
 ## Supported AI Agents
 
 - Claude Code
+- Gemini CLI
 - (WIP) Cursor Agent
-- (WIP) Gemini CLI
 - (WIP) GitHub Copilot CLI
 
 ## System Requirements

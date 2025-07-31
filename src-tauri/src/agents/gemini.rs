@@ -4,22 +4,22 @@ use std::ffi::CStr;
 use std::mem;
 use std::os::raw::c_char;
 use std::process::Command;
-use std::sync::Mutex;
 
 const PROC_ALL_PIDS: u32 = 1;
+const PROC_PIDPATHINFO_MAXSIZE: usize = 4096;
 
 extern "C" {
     fn proc_listpids(p_type: u32, typeinfo: u32, buffer: *mut c_void, buffersize: c_int) -> c_int;
     fn proc_pidpath(pid: c_int, buffer: *mut c_char, buffersize: u32) -> c_int;
 }
 
-const PROC_PIDPATHINFO_MAXSIZE: usize = 4096;
+use std::sync::Mutex;
 
-pub struct ClaudeCodeMonitor {
+pub struct GeminiMonitor {
     cached_pid: Mutex<Option<i32>>,
 }
 
-impl ClaudeCodeMonitor {
+impl GeminiMonitor {
     pub fn new() -> Self {
         Self {
             cached_pid: Mutex::new(None),
@@ -49,7 +49,6 @@ impl ClaudeCodeMonitor {
     }
 
     fn get_process_args(pid: i32) -> Option<String> {
-        // Use ps command to get command line arguments for specific PID
         let output = Command::new("ps")
             .args(&["-p", &pid.to_string(), "-o", "args="])
             .output()
@@ -64,7 +63,6 @@ impl ClaudeCodeMonitor {
     }
 
     fn get_process_cpu_percent(pid: i32) -> Option<f64> {
-        // Use ps command to get current CPU percentage for specific PID
         let output = Command::new("ps")
             .args(&["-p", &pid.to_string(), "-o", "pcpu="])
             .output()
@@ -79,7 +77,6 @@ impl ClaudeCodeMonitor {
     }
 
     fn get_process_cwd(pid: i32) -> Option<String> {
-        // Use lsof command to get current working directory for specific PID
         let output = Command::new("lsof")
             .args(&["-a", "-d", "cwd", "-p", &pid.to_string(), "-F", "n"])
             .output()
@@ -87,10 +84,9 @@ impl ClaudeCodeMonitor {
         
         if output.status.success() {
             let lsof_output = String::from_utf8_lossy(&output.stdout);
-            // Parse lsof output: lines starting with 'n' contain the path
             for line in lsof_output.lines() {
                 if line.starts_with('n') {
-                    return Some(line[1..].to_string()); // Remove 'n' prefix
+                    return Some(line[1..].to_string());
                 }
             }
         }
@@ -132,7 +128,7 @@ impl ClaudeCodeMonitor {
     }
 }
 
-impl AgentMonitor for ClaudeCodeMonitor {
+impl AgentMonitor for GeminiMonitor {
     fn get_status(&self) -> AgentStatus {
         let current_dir = match Self::get_current_dir() {
             Some(dir) => dir,
@@ -160,24 +156,35 @@ impl AgentMonitor for ClaudeCodeMonitor {
 
         // 캐시가 없을 때만 전체 스캔
         let pids = Self::get_all_pids();
+
         for pid in pids {
             if let Some(path) = Self::get_process_path(pid) {
-                let is_claude_process = if path.contains("node") {
+                let is_gemini_process = if path.contains("python") || path.contains("python3") {
                     Self::get_process_args(pid).map_or(false, |args| {
-                        (args.contains("claude") || 
-                         args.contains("@anthropic-ai/claude-code") ||
-                         args.contains("claude-code") ||
-                         args.contains("npx claude") ||
-                         (args.contains("npx") && args.contains("claude"))) && 
+                        (args.contains("gemini") || 
+                         args.contains("google-generativeai") ||
+                         args.contains("google-ai") ||
+                         args.contains("google.generativeai") ||
+                         args.contains("genai") ||
+                         args.contains("bard")) && 
                         !args.contains("--version")
                     })
-                } else if path.contains("claude") || path.contains("@anthropic-ai/claude-code") {
-                    true
+                } else if path.contains("gemini") || path.contains("google-ai") {
+                    Self::get_process_args(pid).map_or(false, |args| !args.contains("--version"))
+                } else if path.contains("node") {
+                    Self::get_process_args(pid).map_or(false, |args| {
+                        (args.contains("@google-ai") ||
+                         args.contains("google-generativeai") ||
+                         args.contains("gemini-cli") ||
+                         args.contains("gemini") ||
+                         args.contains("bard-cli")) &&
+                        !args.contains("--version")
+                    })
                 } else {
                     false
                 };
 
-                if is_claude_process {
+                if is_gemini_process {
                     if let Some(process_cwd) = Self::get_process_cwd(pid) {
                         if Self::is_same_project(&process_cwd, &current_dir) {
                             *cached_pid = Some(pid);
@@ -200,21 +207,60 @@ impl AgentMonitor for ClaudeCodeMonitor {
     }
 
     fn get_name(&self) -> &'static str {
-        "Claude Code"
+        "Gemini CLI"
     }
 
     fn is_available(&self) -> bool {
-        // Check if Claude Code CLI is installed by trying to run --version
-        match Command::new("claude").arg("--version").output() {
-            Ok(_) => true,
-            Err(_) => {
-                // Also try checking for npx claude-code
-                match Command::new("npx").args(&["@anthropic-ai/claude-code", "--version"]).output() {
-                    Ok(_) => true,
-                    Err(_) => false,
+        // Check if Google Gemini CLI tools are available
+        
+        // Try common Gemini CLI commands
+        let gemini_commands = [
+            ("gemini", vec!["--version"]),
+            ("google-ai", vec!["--version"]),
+            ("bard", vec!["--version"]),
+        ];
+        
+        for (cmd, args) in &gemini_commands {
+            if Command::new(cmd).args(args).output().is_ok() {
+                return true;
+            }
+        }
+        
+        // Check for Python-based installations
+        let python_checks = [
+            ("python3", vec!["-c", "import google.generativeai"]),
+            ("python", vec!["-c", "import google.generativeai"]),
+            ("pip3", vec!["show", "google-generativeai"]),
+            ("pip", vec!["show", "google-generativeai"]),
+        ];
+        
+        for (cmd, args) in &python_checks {
+            if let Ok(output) = Command::new(cmd).args(args).output() {
+                if output.status.success() {
+                    return true;
                 }
             }
         }
+        
+        // Check for Node.js-based installations
+        let node_checks = [
+            ("npm", vec!["list", "@google-ai/generativelanguage"]),
+            ("npm", vec!["list", "google-generativeai"]),
+            ("npx", vec!["--version"]), // Basic check if npx is available
+        ];
+        
+        for (cmd, args) in &node_checks {
+            if let Ok(output) = Command::new(cmd).args(args).output() {
+                if output.status.success() {
+                    let output_str = String::from_utf8_lossy(&output.stdout);
+                    if output_str.contains("google") || output_str.contains("generative") {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        false
     }
 }
 

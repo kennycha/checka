@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 pub mod claude_code;
+pub mod gemini;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum AgentStatus {

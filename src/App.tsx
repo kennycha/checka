@@ -29,8 +29,7 @@ function App() {
     let animationId: number;
 
     const animate = (currentTime: number) => {
-      if (currentTime - lastTime >= 1000) {
-        // 1 second
+      if (currentTime - lastTime >= 2000) { // 2 seconds
         fetchAgentSummary();
         lastTime = currentTime;
       }
