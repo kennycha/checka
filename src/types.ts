@@ -27,7 +27,7 @@ export function getStatusString(status: AgentStatus): string {
 export function getStatusColor(status: AgentStatus): string {
   if (typeof status === 'string') {
     switch (status) {
-      case 'Off': return '#6b7280'; // gray
+      case 'Off': return '#d1d5db'; // much lighter gray
       case 'Processing': return '#10b981'; // green
       case 'Waiting': return '#f59e0b'; // yellow
       default: return '#6b7280';
